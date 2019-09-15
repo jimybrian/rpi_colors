@@ -1,0 +1,17 @@
+from ledstrip import LEDStrip
+import time
+import random
+import logging
+import sys
+from signalrcore.hub_connection_builder import HubConnectionBuilder
+import json
+
+CLK = 3
+DAT = 2
+
+strip = LEDStrip(CLK, DAT)
+
+def colorChanger(message):
+	color = json.load(message)
+	strip.setcolourrgb(r, 0, 0)
+	
