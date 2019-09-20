@@ -16,6 +16,8 @@ strip = LEDStrip(CLK, DAT)
 server_url = "ws://192.168.0.18:86/ColorHub"
 username = "BRIAN_RPI"
 
+lastcolor = None
+
 hub_connection = HubConnectionBuilder()\
     .with_url(server_url)\
     .with_automatic_reconnect({
@@ -29,21 +31,48 @@ def colorChanger2(color):
 	r = color["red"]
 	b = color["blue"]
 	g = color["green"]
-	print(r)
 	strip.setcolourrgb(r, g, b)
 
 def colorChanger(message):
+	lastcolor = message
 	color = json.loads(''.join(message))
 	print("Json String")
 	print(color)
 	r = color["red"]
 	b = color["blue"]
 	g = color["green"]
-	print(r)
 	strip.setcolourrgb(r, g, b)
+
+def fade(stuff):
+	print("fade")
+	strip.setcolourrgb(0, 0, 0)
+	for ra in range(50, 200):
+		r = random.randint(0, 255)
+		b = random.randint(0, 255)
+		g = random.randint(0, 255)
+		strip.setcolourrgb(r, g, b)
+		time.sleep(0.30)
+	print("fade Done")
+	strip.setcolourrgb(255, 255, 255)
+		
+def strobe(stuff):
+	print("strobe")
+	for ra in range(50, 200):
+		r = random.randint(0, 255)
+		b = random.randint(0, 255)
+		g = random.randint(0, 255)		
+		strip.setcolourrgb(r, 0, 0)
+		time.sleep(0.05)
+		strip.setcolourrgb(0, g, 0)
+		time.sleep(0.05)
+		strip.setcolourrgb(0, 0, b)
+		time.sleep(0.05)
+		strip.setcolourrgb(0, 0, 0)
+	print("strobe Done")
+	strip.setcolourrgb(200, 200, 200)
 	
 def startUp():
-	for ra in range(50, 200):
+	for ra in range(50, 75):
 		r = random.randint(0, 255)
 		b = random.randint(0, 255)
 		g = random.randint(0, 255)
@@ -63,13 +92,14 @@ def signalrStarter():
 
 	print("Connecting to hub")
 	hub_connection.on("sendColor", colorChanger)
+	
+	hub_connection.on("strobe", strobe)
+	hub_connection.on("fade", fade)
 
 	hub_connection.start()
 	startUp()
 	print("Connected to hub")
-	#while True:
-		#print("Shite")
-	message = input("Press any button to quit")
+	message = input("Press any button on the keyboard to quit")
 	hub_connection.stop()
 	print("Exiting")
 	sys.exit(0)
